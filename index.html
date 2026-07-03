@@ -753,6 +753,15 @@
               <div class="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
             </label>
           </div>
+
+          <!-- Simulation Substitution Panel -->
+          <div class="w-full bg-white border border-slate-200/70 rounded-2xl p-4 space-y-3">
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Simulation Controls (Dev)</p>
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="simCustomerAdj('short')" class="h-9 rounded-xl bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200 active:scale-[.98] transition-transform">➕ Short Cash (NPR 60)</button>
+              <button onclick="simCustomerAdj('excess')" class="h-9 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200 active:scale-[.98] transition-transform">🟢 Excess Cash (NPR 45)</button>
+            </div>
+          </div>
           <!-- language toggle (Feature 40) -->
           <div class="w-full bg-white border border-slate-200/70 rounded-2xl p-4 flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600"><i class="fa-solid fa-language"></i></div>
@@ -826,6 +835,18 @@
           <div class="flex-1">
             <p class="text-sm font-extrabold text-slate-800">Delivered successfully</p>
             <p class="text-[12px] text-slate-500" id="odDeliveredAt">Today, 12:42 PM</p>
+          </div>
+        </div>
+
+        <!-- substitution adjustment card -->
+        <div id="odSubAdjustmentCard" class="hidden rounded-2xl bg-white border border-slate-200/70 p-4 shadow-sm">
+          <div class="flex items-start gap-3">
+            <div id="odSubAdjIcon" class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"></div>
+            <div class="flex-1 min-w-0">
+              <h4 id="odSubAdjTitle" class="text-sm font-extrabold text-slate-800"></h4>
+              <p id="odSubAdjDesc" class="text-xs text-slate-500 mt-1 leading-relaxed"></p>
+              <div id="odSubAdjActions" class="mt-3 flex flex-col gap-2"></div>
+            </div>
           </div>
         </div>
 
@@ -1719,6 +1740,67 @@ function openOrderDetail(id){
   
   document.getElementById('odDeliveredAt').textContent=o.deliveredAt||'';
  
+  // Render substitution adjustment card
+  const adjCard = document.getElementById('odSubAdjustmentCard');
+  if (o.substitutionAdjustment) {
+      adjCard.classList.remove('hidden');
+      const adj = o.substitutionAdjustment;
+      const icon = document.getElementById('odSubAdjIcon');
+      const title = document.getElementById('odSubAdjTitle');
+      const desc = document.getElementById('odSubAdjDesc');
+      const actions = document.getElementById('odSubAdjActions');
+      
+      if (adj.type === 'excess') {
+          icon.className = 'w-10 h-10 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center flex-shrink-0';
+          icon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+          title.textContent = 'Refund Due: NPR ' + adj.amount;
+          
+          if (adj.status === 'pending') {
+              desc.textContent = 'Items were substituted with cheaper options. You will be refunded NPR ' + adj.amount + ' via your choice:';
+              actions.innerHTML = `
+                  <button onclick="resolveCustomerAdj('wallet', ${adj.amount})" class="btn-primary !h-9 !text-xs">Refund to Wallet</button>
+                  <button onclick="resolveCustomerAdj('cash_rider', ${adj.amount})" class="btn-ghost !h-9 !text-xs mt-1.5">Refund Cash via Rider</button>
+              `;
+          } else {
+              let label = adj.option === 'wallet' ? 'Refunded to Wallet' : (adj.option === 'cash_rider' ? 'Refunded Cash via Rider' : 'Refunded');
+              desc.textContent = '✓ Resolved: ' + label + ' (NPR ' + adj.amount + ')';
+              actions.innerHTML = '';
+          }
+      } else { // short
+          icon.className = 'w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center flex-shrink-0';
+          icon.innerHTML = '<i class="fa-solid fa-bell"></i>';
+          title.textContent = 'Pay Short Cash Gap: NPR ' + adj.amount;
+          
+          if (adj.status === 'pending') {
+              desc.textContent = 'More expensive substitutions were made. Please pay the outstanding NPR ' + adj.amount + ':';
+              
+              const walletDisabled = walletBalance < adj.amount;
+              actions.innerHTML = `
+                  <button onclick="resolveCustomerAdj('wallet', ${adj.amount})" ${walletDisabled ? 'disabled' : ''} class="btn-primary !h-9 !text-xs ${walletDisabled ? 'opacity-50 pointer-events-none' : ''}">
+                      Pay NPR ${adj.amount} from Wallet (Bal: NPR ${walletBalance})
+                  </button>
+                  <button onclick="resolveCustomerAdj('online', ${adj.amount})" class="btn-ghost !h-9 !text-xs mt-1.5">
+                      Pay Online (eSewa / Khalti)
+                  </button>
+                  <button onclick="resolveCustomerAdj('collect_cash', ${adj.amount})" class="btn-ghost !h-9 !text-xs mt-1.5">
+                      Pay Cash to Rider at Doorstep
+                  </button>
+              `;
+          } else {
+              let label = '';
+              if (adj.option === 'wallet') label = 'Paid from Wallet';
+              else if (adj.option === 'online') label = 'Paid Online (eSewa/Khalti)';
+              else if (adj.option === 'collect_cash') label = 'Paying Cash to Rider';
+              else if (adj.option === 'collect_qr') label = 'Paying QR to Rider';
+              else if (adj.option === 'charge_wallet') label = 'Paid via App';
+              desc.textContent = '✓ Resolved: ' + label + ' (NPR ' + adj.amount + ')';
+              actions.innerHTML = '';
+          }
+      }
+  } else {
+      adjCard.classList.add('hidden');
+  }
+
   // items with dynamic substitution badges
   document.getElementById('odItems').innerHTML=o.items.map(it=>`
     <div class="flex items-center gap-3">
@@ -1757,6 +1839,55 @@ function openOrderDetail(id){
   document.getElementById('odCancelBtn').classList.toggle('hidden', !cancellable);
  
   go('order-detail');
+}
+
+function resolveCustomerAdj(option, amount) {
+    const o = ORDERS.find(x => x.id === viewingOrderId);
+    if (!o || !o.substitutionAdjustment) return;
+    
+    const adj = o.substitutionAdjustment;
+    adj.status = 'resolved';
+    adj.option = option;
+    
+    if (option === 'wallet') {
+        if (adj.type === 'excess') {
+            walletBalance += amount;
+            toast('Refunded to Wallet', 'NPR ' + amount + ' added to your wallet.');
+        } else {
+            walletBalance -= amount;
+            toast('Paid from Wallet', 'NPR ' + amount + ' deducted from your wallet.');
+        }
+        const balEl = document.getElementById('profileWalletBalance');
+        if (balEl) balEl.textContent = 'NPR ' + walletBalance;
+    } else if (option === 'online') {
+        toast('Paid Online', 'NPR ' + amount + ' paid successfully via eSewa.');
+    } else if (option === 'collect_cash') {
+        toast('Doorstep Cash selected', 'Rider will collect NPR ' + amount + ' cash at doorstep.');
+    } else if (option === 'cash_rider') {
+        toast('Doorstep Cash Refund', 'Rider will refund NPR ' + amount + ' cash at doorstep.');
+    }
+    
+    openOrderDetail(viewingOrderId);
+}
+
+function simCustomerAdj(type) {
+    const o = ORDERS.find(x => x.id === activeOrderId) || ORDERS[0];
+    if (!o) {
+        toast('No active order', 'Place an order first to simulate adjustment.');
+        return;
+    }
+    o.substitutionAdjustment = {
+        type: type,
+        amount: type === 'short' ? 60 : 45,
+        status: 'pending'
+    };
+    if (o.items && o.items.length > 0) {
+        o.items[0].substituted = true;
+        o.items[0].originalName = o.items[0].p.name + ' (Original)';
+    }
+    toast('Adjustment Simulated', 'Substitution adjustment loaded for order ' + o.id);
+    go('order-detail');
+    openOrderDetail(o.id);
 }
 
 /* ---------------- active order banner on home ---------------- */
