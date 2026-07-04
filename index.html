@@ -31,6 +31,53 @@
       --brand: #0B8570;
     }
 
+    @keyframes brandPulse {
+      0%, 100% { transform: scale(1); opacity: 0.95; }
+      50% { transform: scale(1.06); opacity: 1; filter: drop-shadow(0 0 8px rgba(11, 133, 112, 0.4)); }
+    }
+    .animate-brand-pulse {
+      animation: brandPulse 2s infinite ease-in-out;
+    }
+
+    @keyframes scaleNumber {
+      0% { transform: scale(0.6); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-scale-num {
+      animation: scaleNumber 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      display: inline-block;
+    }
+
+    @keyframes spinDot {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(-360deg); }
+    }
+    .animate-spin-dot {
+      animation: spinDot 10s linear infinite;
+      transform-origin: 80px 80px;
+    }
+
+    @keyframes chutkiSnapHand {
+      0% { transform: scale(1) rotate(0deg); }
+      15% { transform: scale(0.8) rotate(-10deg); }
+      35% { transform: scale(1.2) rotate(12deg); }
+      55% { transform: scale(1) rotate(0deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+    @keyframes chutkiSnapSparks {
+      0% { opacity: 0; transform: scale(0.6); }
+      20% { opacity: 1; transform: scale(1.2); }
+      100% { opacity: 0; transform: scale(1.5); }
+    }
+    .animate-chutki-hand {
+      animation: chutkiSnapHand 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      transform-origin: bottom center;
+    }
+    .animate-chutki-sparks {
+      animation: chutkiSnapSparks 0.45s ease-out forwards;
+      transform-origin: center center;
+    }
+
     html,
     body {
       height: 100%;
@@ -207,16 +254,33 @@
       <!-- ====================================================== -->
       <div class="screen" id="screen-placing">
         <div class="flex-1 flex flex-col items-center justify-center px-7 text-center">
-          <div class="relative w-40 h-40 mb-8 flex items-center justify-center">
+          <div class="relative w-40 h-40 mb-8 flex items-center justify-center animate-brand-pulse">
             <svg class="w-full h-full transform -rotate-90">
               <circle cx="80" cy="80" r="70" stroke="#e2e8f0" stroke-width="6" fill="transparent" />
               <circle id="placingProgressCircle" cx="80" cy="80" r="70" stroke="#0B8570" stroke-width="6"
                 fill="transparent" stroke-dasharray="440" stroke-dashoffset="0" stroke-linecap="round"
                 class="transition-all duration-1000 ease-linear" />
+              <g class="animate-spin-dot">
+                <circle cx="80" cy="10" r="6" fill="#0B8570" />
+              </g>
             </svg>
-            <div class="absolute inset-0 flex flex-col items-center justify-center">
-              <span class="text-4xl font-black text-slate-800" id="placingCountdown">15</span>
-              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Seconds</span>
+            <div class="absolute inset-0 flex flex-col items-center justify-center pt-2">
+              <!-- Custom Finger-Snapping Hand SVG (Chutkima Logo animation) -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 text-brand" id="chutkiHand">
+                <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v3" />
+                <path d="M14 10V5a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v5" />
+                <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8" />
+                <path d="M10 14c2-1 4.5-.5 5 1 .5 1.5-1.5 3-4 3" />
+                <g id="chutkiSparks" class="opacity-0">
+                  <path d="M18 3l1.5 1.5" stroke="#F59E0B" stroke-width="2.5" />
+                  <path d="M22 8h-2" stroke="#F59E0B" stroke-width="2.5" />
+                  <path d="M20 13l-1.5 1.5" stroke="#F59E0B" stroke-width="2.5" />
+                </g>
+              </svg>
+              <div class="flex items-baseline gap-1 mt-1">
+                <span class="text-3xl font-black text-slate-800 animate-scale-num" id="placingCountdown">10</span>
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Sec</span>
+              </div>
             </div>
           </div>
 
@@ -933,6 +997,21 @@
             </div>
           </div>
 
+          <!-- Wallet History Card -->
+          <div class="px-5 mt-5">
+            <div class="rounded-2xl bg-white border border-slate-200/70 p-4 shadow-sm">
+              <div class="flex items-center gap-2 mb-3">
+                <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm">
+                  <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <h3 class="font-bold text-slate-800 text-sm">Wallet History</h3>
+              </div>
+              <div class="space-y-3 max-h-[160px] overflow-y-auto pr-1" id="walletHistoryList">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+
           <!-- Menu -->
           <div class="px-5 mt-5 space-y-2">
             <button onclick="go('addresses')"
@@ -993,6 +1072,9 @@
                 <button onclick="simCustomerAdj('excess')"
                   class="h-9 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200 active:scale-[.98] transition-transform">🟢
                   Excess Cash (NPR 45)</button>
+                <button onclick="simWalletRefund()"
+                  class="col-span-2 h-9 rounded-xl bg-blue-50 text-blue-700 text-xs font-bold border border-blue-200 active:scale-[.98] transition-transform">💰
+                  Simulate Refund (NPR 150)</button>
               </div>
             </div>
             <!-- language toggle (Feature 40) -->
@@ -1326,6 +1408,30 @@
       </div>
     </div>
 
+    <!-- ============ REFUND MODAL ============ -->
+    <div id="refundReceivedModal" class="hidden absolute inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-6">
+      <div class="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl text-center transition-all duration-300 transform scale-95 opacity-0" id="refundReceivedModalContent">
+        <div class="w-16 h-16 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto mb-4 text-3xl">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <h3 class="text-xl font-extrabold text-slate-800">Refund Received!</h3>
+        <p class="text-slate-400 text-xs mt-1" id="refundModalOrderId">Order #BW-0043</p>
+        
+        <div class="my-5 bg-slate-50 border border-slate-100 rounded-2xl p-4">
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Refunded Amount</p>
+          <p class="text-3xl font-extrabold text-emerald-600 mt-1" id="refundModalAmount">NPR 150</p>
+          <p class="text-xs text-slate-500 mt-2 font-medium" id="refundModalReason">Reason: Damaged items</p>
+        </div>
+        
+        <div class="flex justify-between text-xs text-slate-400 font-semibold px-2 mb-6">
+          <span>New Wallet Balance</span>
+          <span class="text-slate-800 font-bold" id="refundModalNewBalance">NPR 250</span>
+        </div>
+        
+        <button onclick="closeRefundModal()" class="w-full bg-brand hover:bg-brand-dark text-white font-bold py-3 rounded-2xl transition focus-ring">Awesome, thanks!</button>
+      </div>
+    </div>
+
     <!-- ============ TOAST ============ -->
     <div id="toast"
       class="absolute top-16 left-1/2 -translate-x-1/2 bg-white border-2 border-brand rounded-2xl px-5 py-3 shadow-2xl flex items-center gap-3 z-[60] transition-all duration-300 -translate-y-32 opacity-0 pointer-events-none max-w-[90%]">
@@ -1380,9 +1486,20 @@
     let subPreference = 'call';
     let deliveryTiming = 'instant';
     let scheduledSlot = 'Tomorrow, 08:00 AM - 10:00 AM';
-    let walletBalance = 100;
+
+    if (!localStorage.getItem('chutkima_wallet_balance')) {
+      localStorage.setItem('chutkima_wallet_balance', '100');
+    }
+    let walletBalance = parseFloat(localStorage.getItem('chutkima_wallet_balance'));
     let walletApplied = false;
     let walletUsedAmount = 0;
+
+    let walletTransactions = JSON.parse(localStorage.getItem('chutkima_wallet_transactions')) || [
+      { id: 'wtx1', amount: 100, type: 'compensation', reason: 'Welcome bonus & referral reward', orderId: 'Welcome', at: new Date(Date.now() - 5*24*60*60*1000).toISOString() }
+    ];
+    if (!localStorage.getItem('chutkima_wallet_transactions')) {
+      localStorage.setItem('chutkima_wallet_transactions', JSON.stringify(walletTransactions));
+    }
 
     const ONB = [
       { icon: 'fa-bolt', title: 'Groceries in minutes', body: 'Order daily essentials and get them delivered to your door — fast, fresh, and always on time.' },
@@ -1420,10 +1537,13 @@
       if (name === 'wishlist') renderWishlist();
       if (name === 'tracking') startTracking();
       if (name === 'profile') {
+        walletBalance = parseFloat(localStorage.getItem('chutkima_wallet_balance')) || 100;
+        walletTransactions = JSON.parse(localStorage.getItem('chutkima_wallet_transactions')) || [];
         const balEl = document.getElementById('profileWalletBalance');
         if (balEl) balEl.textContent = 'NPR ' + walletBalance;
         const simToggle = document.getElementById('offlineSimToggle');
         if (simToggle) simToggle.checked = serviceOffline;
+        renderWalletHistory();
       }
       prevScreen = name;
     }
@@ -1781,7 +1901,7 @@
     }
 
     let placingTimer = null;
-    let placingSeconds = 15;
+    let placingSeconds = 10;
 
     function placeOrder() {
       if (serviceOffline) {
@@ -1791,11 +1911,35 @@
       startPlacingOrder();
     }
 
+    function updatePlacingCountdownText(val) {
+      const el = document.getElementById('placingCountdown');
+      if (el) {
+        el.textContent = val;
+        el.classList.remove('animate-scale-num');
+        void el.offsetWidth; // trigger reflow
+        el.classList.add('animate-scale-num');
+      }
+    }
+
+    function triggerChutkiSnap() {
+      const hand = document.getElementById('chutkiHand');
+      const sparks = document.getElementById('chutkiSparks');
+      if (hand && sparks) {
+        hand.classList.remove('animate-chutki-hand');
+        sparks.classList.remove('animate-chutki-sparks');
+        void hand.offsetWidth; // trigger reflow
+        hand.classList.add('animate-chutki-hand');
+        sparks.classList.add('animate-chutki-sparks');
+      }
+    }
+
     function startPlacingOrder() {
-      placingSeconds = 15;
+      placingSeconds = 10;
       go('placing');
 
-      document.getElementById('placingCountdown').textContent = placingSeconds;
+      updatePlacingCountdownText(placingSeconds);
+      setTimeout(triggerChutkiSnap, 50);
+
       const circle = document.getElementById('placingProgressCircle');
       const radius = 70;
       const circumference = 2 * Math.PI * radius;
@@ -1806,9 +1950,10 @@
 
       placingTimer = setInterval(() => {
         placingSeconds--;
-        document.getElementById('placingCountdown').textContent = placingSeconds;
+        updatePlacingCountdownText(placingSeconds);
+        triggerChutkiSnap();
 
-        const offset = circumference - (placingSeconds / 15) * circumference;
+        const offset = circumference - (placingSeconds / 10) * circumference;
         circle.style.strokeDashoffset = offset;
 
         if (placingSeconds <= 0) {
@@ -1833,6 +1978,18 @@
       let finalPayName = payName;
       if (walletUsedAmount > 0) {
         walletBalance -= walletUsedAmount;
+        localStorage.setItem('chutkima_wallet_balance', walletBalance.toString());
+        
+        walletTransactions.unshift({
+          id: 'wtx' + Date.now(),
+          amount: -walletUsedAmount,
+          type: 'payment',
+          reason: 'Order payment',
+          orderId: oid,
+          at: new Date().toISOString()
+        });
+        localStorage.setItem('chutkima_wallet_transactions', JSON.stringify(walletTransactions));
+
         finalPayName += ' + Wallet (NPR ' + walletUsedAmount + ')';
         const balEl = document.getElementById('profileWalletBalance');
         if (balEl) balEl.textContent = 'NPR ' + walletBalance;
@@ -2195,9 +2352,29 @@
       if (option === 'wallet') {
         if (adj.type === 'excess') {
           walletBalance += amount;
+          localStorage.setItem('chutkima_wallet_balance', walletBalance.toString());
+          walletTransactions.unshift({
+            id: 'wtx' + Date.now(),
+            amount: amount,
+            type: 'refund',
+            reason: 'Substitution Refund',
+            orderId: o.id,
+            at: new Date().toISOString()
+          });
+          localStorage.setItem('chutkima_wallet_transactions', JSON.stringify(walletTransactions));
           toast('Refunded to Wallet', 'NPR ' + amount + ' added to your wallet.');
         } else {
           walletBalance -= amount;
+          localStorage.setItem('chutkima_wallet_balance', walletBalance.toString());
+          walletTransactions.unshift({
+            id: 'wtx' + Date.now(),
+            amount: -amount,
+            type: 'payment',
+            reason: 'Substitution Payment',
+            orderId: o.id,
+            at: new Date().toISOString()
+          });
+          localStorage.setItem('chutkima_wallet_transactions', JSON.stringify(walletTransactions));
           toast('Paid from Wallet', 'NPR ' + amount + ' deducted from your wallet.');
         }
         const balEl = document.getElementById('profileWalletBalance');
@@ -2424,6 +2601,131 @@
       clearTimeout(toastT);
       toastT = setTimeout(() => { t.style.transform = 'translate(-50%,-128px)'; t.style.opacity = '0'; }, 2400);
     }
+
+    /* ---------------- wallet sync & custom notifications ---------------- */
+    function renderWalletHistory() {
+      const historyList = document.getElementById('walletHistoryList');
+      if (!historyList) return;
+      
+      if (walletTransactions.length === 0) {
+        historyList.innerHTML = `<p class="text-xs text-slate-400 py-2 text-center">No transactions yet.</p>`;
+        return;
+      }
+      
+      historyList.innerHTML = walletTransactions.map(tx => {
+        const isRefund = tx.amount > 0;
+        const colorClass = isRefund ? 'text-emerald-600' : 'text-slate-800';
+        const sign = isRefund ? '+' : '';
+        const dateStr = new Date(tx.at).toLocaleDateString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+        return `
+          <div class="flex items-center justify-between py-1.5 border-b border-slate-50 last:border-0">
+            <div>
+              <p class="text-xs font-bold text-slate-800">${tx.reason}</p>
+              <p class="text-[10px] text-slate-400 font-semibold">${tx.orderId ? tx.orderId + ' · ' : ''}${dateStr}</p>
+            </div>
+            <span class="text-sm font-extrabold ${colorClass}">${sign}NPR ${tx.amount}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function showRefundReceivedNotification(amount, orderId, reason) {
+      document.getElementById('refundModalAmount').textContent = 'NPR ' + amount;
+      document.getElementById('refundModalOrderId').textContent = 'Order #' + orderId;
+      document.getElementById('refundModalReason').textContent = 'Reason: ' + reason;
+      document.getElementById('refundModalNewBalance').textContent = 'NPR ' + walletBalance;
+      
+      const modal = document.getElementById('refundReceivedModal');
+      const content = document.getElementById('refundReceivedModalContent');
+      
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        content.classList.remove('scale-95', 'opacity-0');
+        content.classList.add('scale-100', 'opacity-100');
+      }, 50);
+    }
+
+    function closeRefundModal() {
+      const modal = document.getElementById('refundReceivedModal');
+      const content = document.getElementById('refundReceivedModalContent');
+      content.classList.remove('scale-100', 'opacity-100');
+      content.classList.add('scale-95', 'opacity-0');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+      }, 300);
+    }
+
+    function simWalletRefund() {
+      const amount = 150;
+      const orderRef = 'BW-00' + Math.floor(10 + Math.random() * 90);
+      const reason = 'Item replacement discount / loyalty refund';
+      const at = new Date().toISOString();
+      
+      // Update balance
+      walletBalance = walletBalance + amount;
+      localStorage.setItem('chutkima_wallet_balance', walletBalance.toString());
+      
+      // Add transaction
+      walletTransactions.unshift({
+        id: 'wtx' + Date.now(),
+        amount: amount,
+        type: 'refund',
+        reason: reason,
+        orderId: orderRef,
+        at: at
+      });
+      localStorage.setItem('chutkima_wallet_transactions', JSON.stringify(walletTransactions));
+      
+      // Set trigger event
+      localStorage.setItem('chutkima_wallet_refund_received', JSON.stringify({
+        amount: amount,
+        orderId: orderRef,
+        reason: reason,
+        at: at,
+        timestamp: Date.now()
+      }));
+    }
+
+    let lastSeenRefundTime = parseInt(localStorage.getItem('last_seen_refund_time') || '0');
+    
+    // Check for incoming refunds every 1.5 seconds
+    setInterval(() => {
+      try {
+        const dataStr = localStorage.getItem('chutkima_wallet_refund_received');
+        if (dataStr) {
+          const refundData = JSON.parse(dataStr);
+          if (refundData && refundData.timestamp > lastSeenRefundTime) {
+            lastSeenRefundTime = refundData.timestamp;
+            localStorage.setItem('last_seen_refund_time', lastSeenRefundTime.toString());
+            
+            // Instantly update local variables
+            walletBalance = parseFloat(localStorage.getItem('chutkima_wallet_balance')) || walletBalance;
+            walletTransactions = JSON.parse(localStorage.getItem('chutkima_wallet_transactions')) || walletTransactions;
+            
+            // Trigger instant display alert/toast!
+            showRefundReceivedNotification(refundData.amount, refundData.orderId, refundData.reason);
+            
+            // Refresh screen if visible
+            const activeScreen = document.querySelector('.screen.active');
+            if (activeScreen && activeScreen.id === 'screen-profile') {
+              const balEl = document.getElementById('profileWalletBalance');
+              if (balEl) {
+                balEl.parentElement.parentElement.classList.add('scale-105', 'bg-emerald-600');
+                balEl.parentElement.parentElement.classList.remove('bg-white/12');
+                setTimeout(() => {
+                  balEl.parentElement.parentElement.classList.remove('scale-105', 'bg-emerald-600');
+                  balEl.parentElement.parentElement.classList.add('bg-white/12');
+                }, 1000);
+                balEl.textContent = 'NPR ' + walletBalance;
+              }
+              renderWalletHistory();
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Error checking refund receipt:', e);
+      }
+    }, 1500);
 
     /* ---------------- init ---------------- */
     renderOnb();
