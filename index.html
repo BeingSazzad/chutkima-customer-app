@@ -438,6 +438,18 @@
             </div>
           </div>
 
+          <!-- Zone Offline Banner (NEW FEATURE) -->
+          <div id="offlineZoneHomeBanner" class="hidden px-5 pt-4">
+            <div class="w-full bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+              <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-500 flex-shrink-0">
+                <i class="fa-solid fa-triangle-exclamation text-lg"></i></div>
+              <div class="flex-1 min-w-0">
+                <h4 class="text-sm font-extrabold text-amber-800 leading-tight">Zone Service Unavailable</h4>
+                <p id="offlineZoneHomeMessage" class="text-xs text-amber-600 mt-1 leading-relaxed">This delivery zone is currently unavailable.</p>
+              </div>
+            </div>
+          </div>
+
           <!-- Active order banner (shown only if there's a live order) -->
           <div id="activeOrderBanner" class="hidden px-5 pt-4">
             <button onclick="openActiveOrder()"
@@ -683,11 +695,11 @@
                 class="fa-solid fa-map-location-dot absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none"></i>
               <i
                 class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
-              <select
+              <select id="checkoutZoneSelect" onchange="changeCheckoutZone(this.value)"
                 class="w-full h-11 rounded-xl bg-slate-50 border border-slate-200 pl-10 pr-9 text-sm font-semibold text-slate-700 outline-none focus:border-brand appearance-none">
-                <option>Butwal — Traffic Chowk (Zone A)</option>
-                <option>Butwal — Amarpath (Zone B)</option>
-                <option>Butwal — Golpark (Zone C)</option>
+                <option value="Traffic Chowk">Butwal — Traffic Chowk (Zone A)</option>
+                <option value="Amarpath">Butwal — Amarpath (Zone B)</option>
+                <option value="Golpark">Butwal — Golpark (Zone C)</option>
               </select>
             </div>
           </div>
@@ -1062,6 +1074,35 @@
               </label>
             </div>
 
+            <!-- Zone Offline Simulation Panel (NEW FEATURE) -->
+            <div class="w-full bg-white border border-slate-200/70 rounded-2xl p-4 space-y-3">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500"><i
+                    class="fa-solid fa-location-pin-lock"></i></div>
+                <div>
+                  <p class="text-sm font-bold text-slate-800">Simulate Zone Offline</p>
+                  <p class="text-[10px] text-slate-400">Force zone-specific closure</p>
+                </div>
+              </div>
+              <div class="space-y-2 pt-1 border-t border-slate-100">
+                <select id="simZoneSelect" onchange="updateSimZoneControls()"
+                  class="w-full h-9 rounded-xl bg-slate-50 border border-slate-200 px-3 text-xs font-bold text-slate-700 outline-none focus:border-brand">
+                  <option value="Traffic Chowk">Traffic Chowk</option>
+                  <option value="Amarpath">Amarpath</option>
+                  <option value="Golpark">Golpark</option>
+                </select>
+                <div class="flex items-center justify-between py-1">
+                  <span class="text-xs font-bold text-slate-600">Zone Status Offline</span>
+                  <label class="relative inline-flex items-center cursor-pointer select-none">
+                    <input type="checkbox" id="simZoneOfflineToggle" onchange="toggleSimZoneOffline(this.checked)" class="sr-only peer">
+                    <div class="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                  </label>
+                </div>
+                <input type="text" id="simZoneReasonInput" oninput="updateSimZoneReason(this.value)" placeholder="Offline reason (e.g. Heavy rain)"
+                  class="w-full h-9 rounded-xl bg-slate-50 border border-slate-200 px-3 text-xs font-medium outline-none focus:border-brand">
+              </div>
+            </div>
+
             <!-- Simulation Substitution Panel -->
             <div class="w-full bg-white border border-slate-200/70 rounded-2xl p-4 space-y-3">
               <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Simulation Controls (Dev)</p>
@@ -1108,21 +1149,8 @@
               class="fa-solid fa-arrow-left"></i></button>
           <h2 class="text-lg font-extrabold text-slate-900">Saved addresses</h2>
         </div>
-        <div class="flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-32 space-y-3">
-          <div class="rounded-2xl bg-white border-2 border-brand p-4">
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-sm font-extrabold text-slate-800"><i
-                  class="fa-solid fa-house text-brand mr-1.5"></i>Home</span>
-              <span class="text-[10px] font-bold text-brand bg-brand-soft px-2 py-0.5 rounded-full">Default</span>
-            </div>
-            <p class="text-sm text-slate-500">Amarpath, Traffic Chowk, Butwal · Near Nepal Bank</p>
-          </div>
-          <div class="rounded-2xl bg-white border border-slate-200/70 p-4">
-            <span class="text-sm font-extrabold text-slate-800"><i
-                class="fa-solid fa-briefcase text-slate-500 mr-1.5"></i>Work</span>
-            <p class="text-sm text-slate-500 mt-1">Golpark, Butwal · Office building 2nd floor</p>
-          </div>
-          <button class="btn-ghost mt-2"><i class="fa-solid fa-plus"></i> Add new address</button>
+        <div class="flex-1 overflow-y-auto no-scrollbar px-5 pt-4 pb-32 space-y-3" id="addressesListContainer">
+          <!-- Dynamic rendering -->
         </div>
       </div>
 
@@ -1408,6 +1436,38 @@
       </div>
     </div>
 
+    <!-- ============ STORE OFFLINE POPUP ============ -->
+    <div id="storeOfflineModal" class="hidden absolute inset-0 z-50 bg-black/60 flex items-center justify-center p-6">
+      <div class="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl text-center">
+        <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4 text-red-500">
+          <i class="fa-solid fa-store-slash text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-extrabold text-slate-900">Store Currently Offline</h3>
+        <p id="storeOfflineModalMessage" class="text-sm text-slate-500 mt-2 leading-relaxed">
+          We are currently closed and not accepting new orders. Please check back later.
+        </p>
+        <button class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3.5 rounded-2xl mt-6 transition focus-ring"
+          onclick="closeStoreOfflineModal()">Got it</button>
+      </div>
+    </div>
+
+    <!-- ============ ZONE OFFLINE POPUP ============ -->
+    <div id="zoneOfflineModal" class="hidden absolute inset-0 z-50 bg-black/50 flex items-center justify-center p-6">
+      <div class="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl text-center">
+        <div class="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4 text-amber-500">
+          <i class="fa-solid fa-location-pin-lock text-2xl"></i>
+        </div>
+        <h3 class="text-lg font-extrabold text-slate-900">Delivery Zone Unavailable</h3>
+        <p id="zoneOfflineModalMessage" class="text-sm text-slate-500 mt-2 leading-relaxed">
+          This delivery zone is currently unavailable. Please change your location or try again later.
+        </p>
+        <button class="w-full bg-brand hover:bg-brand-dark text-white font-bold py-3 rounded-2xl mt-6 transition focus-ring"
+          onclick="changeLocationFromOfflinePopup()">Change Delivery Location</button>
+        <button class="w-full bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold py-3 rounded-2xl mt-2 transition focus-ring text-xs"
+          onclick="closeZoneOfflineModal()">Cancel</button>
+      </div>
+    </div>
+
     <!-- ============ REFUND MODAL ============ -->
     <div id="refundReceivedModal" class="hidden absolute inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-6">
       <div class="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl text-center transition-all duration-300 transform scale-95 opacity-0" id="refundReceivedModalContent">
@@ -1487,6 +1547,14 @@
     let deliveryTiming = 'instant';
     let scheduledSlot = 'Tomorrow, 08:00 AM - 10:00 AM';
 
+    // Zones simulation data mirroring the admin dashboard
+    let zonesData = {
+      'Traffic Chowk': { status: 'active', offlineReason: '' },
+      'Amarpath': { status: 'active', offlineReason: '' },
+      'Golpark': { status: 'active', offlineReason: '' }
+    };
+    let selectedZone = 'Traffic Chowk';
+
     if (!localStorage.getItem('chutkima_wallet_balance')) {
       localStorage.setItem('chutkima_wallet_balance', '100');
     }
@@ -1527,15 +1595,19 @@
       if (name === 'home') {
         renderHome();
         refreshActiveBanner();
-        const banner = document.getElementById('offlineHomeBanner');
-        if (banner) banner.classList.toggle('hidden', !serviceOffline);
+        checkZoneStatusAlerts(false);
       }
       if (name === 'categories') renderCategories();
       if (name === 'cart') renderCart();
-      if (name === 'checkout') renderCheckout();
+      if (name === 'checkout') {
+        const selectCo = document.getElementById('checkoutZoneSelect');
+        if (selectCo) selectCo.value = selectedZone;
+        renderCheckout();
+      }
       if (name === 'orders') renderOrders();
       if (name === 'wishlist') renderWishlist();
       if (name === 'tracking') startTracking();
+      if (name === 'addresses') renderAddresses();
       if (name === 'profile') {
         walletBalance = parseFloat(localStorage.getItem('chutkima_wallet_balance')) || 100;
         walletTransactions = JSON.parse(localStorage.getItem('chutkima_wallet_transactions')) || [];
@@ -1543,6 +1615,7 @@
         if (balEl) balEl.textContent = 'NPR ' + walletBalance;
         const simToggle = document.getElementById('offlineSimToggle');
         if (simToggle) simToggle.checked = serviceOffline;
+        updateSimZoneControls();
         renderWalletHistory();
       }
       prevScreen = name;
@@ -1832,8 +1905,150 @@
 
     function toggleOfflineSimulation(checked) {
       serviceOffline = checked;
-      const banner = document.getElementById('offlineHomeBanner');
-      if (banner) banner.classList.toggle('hidden', !serviceOffline);
+      checkZoneStatusAlerts(false); // Update banners
+      refreshAll();
+    }
+
+    function checkZoneStatusAlerts(forcePopup) {
+      // 1. Check Store Offline Banner
+      const storeBanner = document.getElementById('offlineHomeBanner');
+      if (storeBanner) storeBanner.classList.toggle('hidden', !serviceOffline);
+
+      // 2. Check Zone Offline Banner
+      const zoneData = zonesData[selectedZone] || { status: 'active', offlineReason: '' };
+      const isZoneOffline = (zoneData.status === 'offline');
+      
+      const zoneBanner = document.getElementById('offlineZoneHomeBanner');
+      const zoneMsg = document.getElementById('offlineZoneHomeMessage');
+      if (zoneBanner) {
+        zoneBanner.classList.toggle('hidden', !isZoneOffline);
+        if (isZoneOffline && zoneMsg) {
+          const reason = zoneData.offlineReason || "This delivery zone is currently unavailable.";
+          zoneMsg.textContent = "Unavailable: " + reason;
+        }
+      }
+
+      // 3. Show Popup if needed
+      if (serviceOffline && forcePopup) {
+        document.getElementById('storeOfflineModal').classList.remove('hidden');
+      } else if (isZoneOffline && forcePopup) {
+        const modalMsg = document.getElementById('zoneOfflineModalMessage');
+        if (modalMsg) {
+          const reason = zoneData.offlineReason || "This delivery zone is currently unavailable. Please change your location or try again later.";
+          modalMsg.innerHTML = `<span class="font-extrabold text-slate-800">${selectedZone}</span> is currently unavailable.<br><br><span class="font-bold text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-1.5 inline-block text-xs my-1">Reason: ${reason}</span><br><br>Please select another location or try again later.`;
+        }
+        document.getElementById('zoneOfflineModal').classList.remove('hidden');
+      }
+    }
+
+    function closeStoreOfflineModal() {
+      document.getElementById('storeOfflineModal').classList.add('hidden');
+    }
+
+    function closeZoneOfflineModal() {
+      document.getElementById('zoneOfflineModal').classList.add('hidden');
+    }
+
+    function changeLocationFromOfflinePopup() {
+      closeZoneOfflineModal();
+      go('addresses');
+    }
+
+    function changeCheckoutZone(val) {
+      selectedZone = val;
+      
+      // Update home screen Delivering to text
+      const homeAddressEl = document.querySelector('#screen-home span.text-sm.font-extrabold.text-slate-800');
+      if (homeAddressEl) {
+        if (val === 'Traffic Chowk') homeAddressEl.textContent = 'Amarpath, Traffic Chowk, Butwal · Near Nepal Bank';
+        else if (val === 'Golpark') homeAddressEl.textContent = 'Golpark, Butwal · Office building 2nd floor';
+        else homeAddressEl.textContent = 'Milanchowk, Butwal';
+      }
+
+      checkZoneStatusAlerts(true); // Show popup if zone offline
+      renderCheckout();
+    }
+
+    function selectAddress(type, zoneName, addressText, element) {
+      selectedZone = zoneName;
+      
+      // Update the active address text on home page
+      const homeAddressEl = document.querySelector('#screen-home span.text-sm.font-extrabold.text-slate-800');
+      if (homeAddressEl) homeAddressEl.textContent = addressText;
+      
+      // Update visual highlight on cards
+      document.querySelectorAll('.address-card').forEach(card => {
+        card.className = "rounded-2xl bg-white border border-slate-200/70 p-4 cursor-pointer address-card";
+      });
+      if (element) {
+        element.className = "rounded-2xl bg-white border-2 border-brand p-4 cursor-pointer address-card";
+      }
+
+      // Sync active checkout select
+      const selectCo = document.getElementById('checkoutZoneSelect');
+      if (selectCo) {
+        selectCo.value = zoneName;
+      }
+
+      // Check zone status and trigger popup immediately if offline
+      checkZoneStatusAlerts(true); // forcePopup = true
+      
+      // Go back to home
+      go('home');
+    }
+
+    const ADDRESS_LIST = [
+      { label: 'Home', zone: 'Traffic Chowk', text: 'Amarpath, Traffic Chowk, Butwal · Near Nepal Bank', icon: 'fa-house', default: true },
+      { label: 'Work', zone: 'Golpark', text: 'Golpark, Butwal · Office building 2nd floor', icon: 'fa-briefcase', default: false }
+    ];
+
+    function renderAddresses() {
+      const container = document.getElementById('addressesListContainer');
+      if (!container) return;
+
+      container.innerHTML = ADDRESS_LIST.map(a => {
+        const isSel = (selectedZone === a.zone);
+        const zoneData = zonesData[a.zone] || { status: 'active', offlineReason: '' };
+        const isOffline = (zoneData.status === 'offline');
+        
+        return `<div onclick="selectAddress('${a.label}', '${a.zone}', '${a.text}', this)"
+          class="rounded-2xl bg-white border-2 cursor-pointer p-4 transition-all hover:scale-[1.01] address-card ${isSel ? 'border-brand' : 'border-slate-200/70'}">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-sm font-extrabold text-slate-800"><i
+                class="fa-solid ${a.icon} ${isSel ? 'text-brand' : 'text-slate-400'} mr-1.5"></i>${a.label}</span>
+            <div class="flex items-center gap-1.5">
+              ${isOffline ? `<span class="text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">Unavailable</span>` : ''}
+              ${a.default ? `<span class="text-[10px] font-bold text-brand bg-brand-soft px-2 py-0.5 rounded-full">Default</span>` : ''}
+            </div>
+          </div>
+          <p class="text-sm text-slate-500">${a.text}</p>
+        </div>`;
+      }).join('') + `<button class="btn-ghost mt-2" onclick="toast('Add Address','Address creation is in mock mode')"><i class="fa-solid fa-plus"></i> Add new address</button>`;
+    }
+
+    function updateSimZoneControls() {
+      const zone = document.getElementById('simZoneSelect').value;
+      const data = zonesData[zone] || { status: 'active', offlineReason: '' };
+      document.getElementById('simZoneOfflineToggle').checked = (data.status === 'offline');
+      document.getElementById('simZoneReasonInput').value = data.offlineReason || '';
+    }
+
+    function toggleSimZoneOffline(checked) {
+      const zone = document.getElementById('simZoneSelect').value;
+      if (!zonesData[zone]) zonesData[zone] = { status: 'active', offlineReason: '' };
+      zonesData[zone].status = checked ? 'offline' : 'active';
+      if (!checked) zonesData[zone].offlineReason = '';
+      
+      checkZoneStatusAlerts(false);
+      refreshAll();
+    }
+
+    function updateSimZoneReason(val) {
+      const zone = document.getElementById('simZoneSelect').value;
+      if (!zonesData[zone]) zonesData[zone] = { status: 'active', offlineReason: '' };
+      zonesData[zone].offlineReason = val.trim();
+      
+      checkZoneStatusAlerts(false);
       refreshAll();
     }
 
@@ -1873,9 +2088,15 @@
 
       const btn = document.querySelector('#screen-checkout button.btn-primary');
       if (btn) {
+        const zoneData = zonesData[selectedZone] || { status: 'active', offlineReason: '' };
+        const isZoneOffline = (zoneData.status === 'offline');
+        
         if (serviceOffline) {
           btn.disabled = true;
           btn.innerHTML = 'Store Closed';
+        } else if (isZoneOffline) {
+          btn.disabled = true;
+          btn.innerHTML = 'Zone Unavailable';
         } else {
           btn.disabled = false;
           btn.innerHTML = `<span id="placeOrderLabel">Place order · NPR ${gt}</span>`;
@@ -1906,6 +2127,11 @@
     function placeOrder() {
       if (serviceOffline) {
         toast('Closed', 'Store is closed right now.');
+        return;
+      }
+      const zoneData = zonesData[selectedZone] || { status: 'active', offlineReason: '' };
+      if (zoneData.status === 'offline') {
+        toast('Unavailable', 'This delivery zone is currently unavailable.');
         return;
       }
       startPlacingOrder();
