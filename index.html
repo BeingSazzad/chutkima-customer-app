@@ -1108,14 +1108,20 @@
               <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">Simulation Controls (Dev)</p>
               <div class="grid grid-cols-2 gap-2">
                 <button onclick="simCustomerAdj('short')"
-                  class="h-9 rounded-xl bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200 active:scale-[.98] transition-transform">➕
+                  class="h-9 rounded-xl bg-slate-50 text-slate-700 text-xs font-bold border border-slate-200 active:scale-[.98] transition-transform">➕
                   Short Cash (NPR 60)</button>
                 <button onclick="simCustomerAdj('excess')"
-                  class="h-9 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200 active:scale-[.98] transition-transform">🟢
+                  class="h-9 rounded-xl bg-slate-50 text-slate-700 text-xs font-bold border border-slate-200 active:scale-[.98] transition-transform">🟢
                   Excess Cash (NPR 45)</button>
                 <button onclick="simWalletRefund()"
-                  class="col-span-2 h-9 rounded-xl bg-blue-50 text-blue-700 text-xs font-bold border border-blue-200 active:scale-[.98] transition-transform">💰
+                  class="col-span-2 h-9 rounded-xl bg-slate-50 text-slate-700 text-xs font-bold border border-slate-200 active:scale-[.98] transition-transform">💰
                   Simulate Refund (NPR 150)</button>
+                <button onclick="showOfflinePopupDev('zone')"
+                  class="h-9 rounded-xl bg-amber-50 text-amber-700 text-[10px] font-bold border border-amber-200 active:scale-[.98] transition-transform">⚠️
+                  Preview Zone Popup</button>
+                <button onclick="showOfflinePopupDev('store')"
+                  class="h-9 rounded-xl bg-red-50 text-red-700 text-[10px] font-bold border border-red-200 active:scale-[.98] transition-transform">❌
+                  Preview Store Popup</button>
               </div>
             </div>
             <!-- language toggle (Feature 40) -->
@@ -1935,6 +1941,19 @@
         const modalMsg = document.getElementById('zoneOfflineModalMessage');
         if (modalMsg) {
           const reason = zoneData.offlineReason || "This delivery zone is currently unavailable. Please change your location or try again later.";
+          modalMsg.innerHTML = `<span class="font-extrabold text-slate-800">${selectedZone}</span> is currently unavailable.<br><br><span class="font-bold text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-1.5 inline-block text-xs my-1">Reason: ${reason}</span><br><br>Please select another location or try again later.`;
+        }
+        document.getElementById('zoneOfflineModal').classList.remove('hidden');
+      }
+    }
+
+    function showOfflinePopupDev(type) {
+      if (type === 'store') {
+        document.getElementById('storeOfflineModal').classList.remove('hidden');
+      } else {
+        const modalMsg = document.getElementById('zoneOfflineModalMessage');
+        if (modalMsg) {
+          const reason = zonesData[selectedZone]?.offlineReason || "Heavy rain in Butwal";
           modalMsg.innerHTML = `<span class="font-extrabold text-slate-800">${selectedZone}</span> is currently unavailable.<br><br><span class="font-bold text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-1.5 inline-block text-xs my-1">Reason: ${reason}</span><br><br>Please select another location or try again later.`;
         }
         document.getElementById('zoneOfflineModal').classList.remove('hidden');
